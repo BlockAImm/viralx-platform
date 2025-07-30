@@ -2,7 +2,9 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { useState } from 'react';
 import MouseGlowEffect from '@/components/MouseGlowEffect';
+import { NeuralNetwork } from '@/components/NeuralNetwork';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { LikesIcon, RetweetsIcon, ViewsIcon, FollowersIcon } from '@/components/ServiceIcons';
 
@@ -43,11 +45,17 @@ const services = [
 
 export default function HomePage() {
   const { publicKey } = useWallet();
+  const [isHeroHovered, setIsHeroHovered] = useState(false);
 
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <MouseGlowEffect className="relative overflow-hidden bg-gradient-to-br from-obsidian via-charcoal/50 to-obsidian">
+      <MouseGlowEffect 
+        className="relative overflow-hidden bg-gradient-to-br from-obsidian via-charcoal/50 to-obsidian"
+        onMouseEnter={() => setIsHeroHovered(true)}
+        onMouseLeave={() => setIsHeroHovered(false)}
+      >
+        <NeuralNetwork isHovered={isHeroHovered} />
         <div className="container mx-auto px-4 xs:px-4 sm:px-6 py-16 xs:py-20 sm:py-24 md:py-32">
           <div className="max-w-4xl mx-auto text-center relative z-10">
             <div className="mb-8 animate-fade-in-up">
