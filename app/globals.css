@@ -1,0 +1,444 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Manrope:wght@400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Cassio BC';
+  src: url('/fonts/CassioBC-Regular.woff2') format('woff2'),
+       url('/fonts/CassioBC-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@layer base {
+  :root {
+    --font-cassio: 'Cassio BC', sans-serif;
+  }
+
+  body {
+    @apply antialiased;
+  }
+
+  h1, .h1 {
+    font-family: 'Cassio BC', sans-serif;
+    @apply text-4xl leading-tight;
+  }
+
+  h2, .h2 {
+    @apply font-manrope font-medium text-3xl leading-tight;
+  }
+
+  h3, .h3 {
+    @apply font-manrope font-medium text-2xl leading-tight;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply relative text-white font-manrope font-medium px-6 py-2.5 rounded-md overflow-hidden transition-all duration-300;
+    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 50%, #1E40AF 100%);
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease infinite;
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+  }
+  
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+  }
+  
+  .btn-primary:hover::before {
+    left: 100%;
+  }
+
+  .btn-secondary {
+    @apply relative bg-transparent border border-steel-blue text-titanium font-manrope font-medium px-6 py-2.5 rounded-md overflow-hidden transition-all duration-300;
+  }
+  
+  .btn-secondary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 100%;
+    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+    transition: width 0.3s;
+    z-index: -1;
+  }
+  
+  .btn-secondary:hover {
+    @apply text-white border-ice-blue;
+  }
+  
+  .btn-secondary:hover::before {
+    width: 100%;
+  }
+
+  .card {
+    @apply bg-charcoal border border-steel-blue/10 rounded-card p-4 xs:p-5 sm:p-6;
+  }
+
+  .input {
+    @apply bg-charcoal/50 border border-steel-blue/30 rounded-md px-4 py-2.5 text-titanium placeholder-steel-blue focus:border-ice-blue focus:outline-none transition-colors duration-150;
+  }
+}
+
+@layer utilities {
+  .font-cassio {
+    font-family: 'Cassio BC', sans-serif;
+  }
+
+  .gradient-primary {
+    @apply bg-gradient-to-br from-ice-blue to-steel-blue;
+  }
+
+  .gradient-bg {
+    @apply bg-gradient-to-b from-obsidian to-charcoal;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-ice-blue to-steel-blue;
+  }
+
+  .mouse-glow {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .mouse-glow::before {
+    content: '';
+    position: absolute;
+    top: var(--mouse-y, 50%);
+    left: var(--mouse-x, 50%);
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, rgba(59, 130, 246, 0.1) 40%, transparent 70%);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    filter: blur(20px);
+  }
+
+  .mouse-glow:hover::before {
+    opacity: 1;
+  }
+}
+
+/* Animations */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s ease-out forwards;
+}
+
+.animation-delay-200 {
+  animation-delay: 200ms;
+}
+
+.animation-delay-400 {
+  animation-delay: 400ms;
+}
+
+.animation-delay-600 {
+  animation-delay: 600ms;
+}
+
+.animation-delay-1000 {
+  animation-delay: 1000ms;
+}
+
+/* Logo Glow and Spin Effects */
+.logo-glow-container {
+  position: relative;
+  display: inline-block;
+}
+
+.logo-glow {
+  position: absolute;
+  inset: -20px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.6) 0%, rgba(59, 130, 246, 0.3) 40%, transparent 70%);
+  filter: blur(30px);
+  animation: pulse-glow 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.logo-spin {
+  position: relative;
+  z-index: 1;
+}
+
+.logo-glow-container:hover .logo-spin {
+  transform: rotate(360deg);
+}
+
+/* Wallet Adapter Overrides */
+.wallet-adapter-dropdown {
+  @apply !font-manrope;
+}
+
+.wallet-adapter-button {
+  @apply !font-manrope !font-medium !transition-all !duration-300 !relative !overflow-hidden;
+  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 50%, #1E40AF 100%) !important;
+  background-size: 200% 200% !important;
+  animation: gradient-shift 3s ease infinite !important;
+}
+
+.wallet-adapter-button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4) !important;
+}
+
+.wallet-adapter-modal-wrapper {
+  @apply !bg-obsidian/95;
+}
+
+.wallet-adapter-modal-container {
+  @apply !bg-charcoal !border !border-steel-blue/20;
+}
+
+.wallet-adapter-modal-title {
+  @apply !text-titanium !font-manrope;
+}
+
+.wallet-adapter-modal-list li {
+  @apply !bg-charcoal/50 hover:!bg-charcoal !border !border-steel-blue/10;
+}
+
+/* Range Input Styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #475569;
+  outline: none;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+input[type="range"]:hover {
+  opacity: 1;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #3B82F6;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  background: #2563EB;
+  transform: scale(1.2);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #3B82F6;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+input[type="range"]::-moz-range-thumb:hover {
+  background: #2563EB;
+  transform: scale(1.2);
+}
+
+/* Track progress fill */
+input[type="range"]::-webkit-slider-runnable-track {
+  background: linear-gradient(to right, #3B82F6 0%, #3B82F6 var(--range-progress), #475569 var(--range-progress), #475569 100%);
+}
+
+/* Payment Method Buttons */
+.payment-button {
+  @apply relative overflow-hidden transition-all duration-300;
+  background: linear-gradient(135deg, transparent 0%, transparent 100%);
+  background-size: 200% 200%;
+}
+
+.payment-button.active {
+  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 50%, #1E40AF 100%);
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+.payment-button:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 10px rgba(59, 130, 246, 0.3);
+}
+
+/* Form Submit Buttons */
+button[type="submit"] {
+  position: relative;
+  overflow: hidden;
+}
+
+button[type="submit"]:not(:disabled)::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+button[type="submit"]:not(:disabled):active::after {
+  width: 300px;
+  height: 300px;
+}
+
+/* Shimmer effect for loading/processing states */
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.btn-loading {
+  background: linear-gradient(90deg, #3B82F6 25%, #60A5FA 50%, #3B82F6 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Electric animation for dropdown */
+@keyframes electric-border {
+  0%, 100% {
+    box-shadow: 
+      0 0 5px rgba(59, 130, 246, 0.5),
+      inset 0 0 5px rgba(59, 130, 246, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 0 20px rgba(59, 130, 246, 0.8),
+      inset 0 0 10px rgba(59, 130, 246, 0.3);
+  }
+}
+
+@keyframes electric-pulse {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
+.electric-dropdown {
+  position: relative;
+  overflow: hidden;
+  animation: electric-border 2s ease-in-out infinite;
+}
+
+.electric-dropdown::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -10%;
+  width: 120%;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(59, 130, 246, 0.8) 20%, 
+    rgba(147, 197, 253, 1) 50%, 
+    rgba(59, 130, 246, 0.8) 80%, 
+    transparent 100%);
+  animation: electric-pulse 2s linear infinite;
+}
+
+.electric-dropdown::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -10%;
+  width: 120%;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(147, 197, 253, 0.8) 30%, 
+    rgba(255, 255, 255, 1) 50%, 
+    rgba(147, 197, 253, 0.8) 70%, 
+    transparent 100%);
+  animation: electric-pulse 2s linear infinite;
+  animation-delay: 1s;
+}
+
+/* Simple hover effect for dropdown items */
+.electric-dropdown a {
+  position: relative;
+  transition: background-color 0.2s ease;
+}
+
+.electric-dropdown a:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* Subtle glow for icons on hover */
+.electric-dropdown a:hover .text-ice-blue {
+  filter: brightness(1.2);
+  transition: filter 0.2s ease;
+}
+
