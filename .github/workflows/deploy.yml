@@ -1,0 +1,83 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run tests
+      run: npm test --if-present
+
+    - name: Build application
+      run: npm run build
+      env:
+        NEXT_PUBLIC_SOLANA_NETWORK: ${{ secrets.NEXT_PUBLIC_SOLANA_NETWORK }}
+        NEXT_PUBLIC_SOLANA_RPC_URL: ${{ secrets.NEXT_PUBLIC_SOLANA_RPC_URL }}
+        NEXT_PUBLIC_MERCHANT_WALLET: ${{ secrets.NEXT_PUBLIC_MERCHANT_WALLET }}
+        NEXT_PUBLIC_USDC_MINT_ADDRESS: ${{ secrets.NEXT_PUBLIC_USDC_MINT_ADDRESS }}
+        NEXT_PUBLIC_WSOL_MINT_ADDRESS: ${{ secrets.NEXT_PUBLIC_WSOL_MINT_ADDRESS }}
+
+    # Option 1: Deploy to AWS EC2
+    - name: Deploy to EC2
+      if: ${{ vars.DEPLOY_METHOD == 'EC2' }}
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USERNAME }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          cd ~/viralx-platform
+          git pull origin main
+          npm install
+          npm run build
+          pm2 restart viralx || pm2 start npm --name "viralx" -- start
+
+    # Option 2: Deploy to AWS Amplify
+    - name: Deploy to Amplify
+      if: ${{ vars.DEPLOY_METHOD == 'AMPLIFY' }}
+      run: |
+        echo "Amplify will auto-deploy from GitHub webhook"
+
+    # Option 3: Deploy using AWS CodeDeploy
+    - name: Configure AWS credentials
+      if: ${{ vars.DEPLOY_METHOD == 'CODEDEPLOY' }}
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Create deployment package
+      if: ${{ vars.DEPLOY_METHOD == 'CODEDEPLOY' }}
+      run: |
+        zip -r deploy.zip . -x "*.git*" "node_modules/*" ".env*"
+
+    - name: Upload to S3
+      if: ${{ vars.DEPLOY_METHOD == 'CODEDEPLOY' }}
+      run: |
+        aws s3 cp deploy.zip s3://${{ secrets.S3_BUCKET }}/viralx/deploy.zip
+
+    - name: Deploy with CodeDeploy
+      if: ${{ vars.DEPLOY_METHOD == 'CODEDEPLOY' }}
+      run: |
+        aws deploy create-deployment \
+          --application-name viralx-app \
+          --deployment-group-name viralx-deployment-group \
+          --s3-location bucket=${{ secrets.S3_BUCKET }},key=viralx/deploy.zip,bundleType=zip

@@ -18,6 +18,14 @@ interface Pulse {
   id: number
 }
 
+interface MousePulse {
+  x: number
+  y: number
+  targetNodeId: number
+  progress: number
+  id: number
+}
+
 interface NeuralNetworkProps {
   isHovered?: boolean
 }
@@ -27,6 +35,8 @@ export function NeuralNetwork({ isHovered = false }: NeuralNetworkProps) {
   const animationRef = useRef<number>()
   const nodesRef = useRef<Node[]>([])
   const pulsesRef = useRef<Pulse[]>([])
+  const mousePulsesRef = useRef<MousePulse[]>([])
+  const mousePositionRef = useRef({ x: 0, y: 0 })
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
 
   useEffect(() => {
@@ -48,6 +58,42 @@ export function NeuralNetwork({ isHovered = false }: NeuralNetworkProps) {
 
     const ctx = canvas.getContext('2d')
     if (!ctx) return
+
+    // Mouse move handler
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect()
+      mousePositionRef.current = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      }
+
+      // Create mouse pulses to nearby nodes
+      if (isHovered) {
+        const mouseX = mousePositionRef.current.x
+        const mouseY = mousePositionRef.current.y
+        
+        // Find nodes within range of mouse
+        const pulseRadius = 100
+        nodesRef.current.forEach(node => {
+          const distance = Math.sqrt(
+            Math.pow(node.x - mouseX, 2) + 
+            Math.pow(node.y - mouseY, 2)
+          )
+          
+          if (distance < pulseRadius && Math.random() < 0.1) {
+            mousePulsesRef.current.push({
+              x: mouseX,
+              y: mouseY,
+              targetNodeId: node.id,
+              progress: 0,
+              id: Date.now() + Math.random()
+            })
+          }
+        })
+      }
+    }
+
+    canvas.addEventListener('mousemove', handleMouseMove)
 
     // Initialize nodes
     const nodeCount = window.innerWidth < 768 ? 50 : 150
@@ -144,6 +190,47 @@ export function NeuralNetwork({ isHovered = false }: NeuralNetworkProps) {
         return true
       })
 
+      // Update and draw mouse pulses
+      mousePulsesRef.current = mousePulsesRef.current.filter(pulse => {
+        pulse.progress += 0.04
+        
+        if (pulse.progress >= 1) return false
+
+        const targetNode = nodesRef.current[pulse.targetNodeId]
+        if (targetNode) {
+          const x = pulse.x + (targetNode.x - pulse.x) * pulse.progress
+          const y = pulse.y + (targetNode.y - pulse.y) * pulse.progress
+
+          // Draw mouse pulse with enhanced glow
+          const gradient = ctx.createRadialGradient(x, y, 0, x, y, 12)
+          gradient.addColorStop(0, 'rgba(255, 255, 255, 1)')
+          gradient.addColorStop(0.3, 'rgba(147, 197, 253, 0.8)')
+          gradient.addColorStop(0.6, 'rgba(59, 130, 246, 0.5)')
+          gradient.addColorStop(1, 'rgba(59, 130, 246, 0)')
+
+          ctx.fillStyle = gradient
+          ctx.beginPath()
+          ctx.arc(x, y, 12, 0, Math.PI * 2)
+          ctx.fill()
+
+          // When pulse reaches node, create outgoing pulses
+          if (pulse.progress > 0.95 && targetNode.connections.length > 0) {
+            targetNode.connections.forEach(connectionId => {
+              if (Math.random() < 0.5) {
+                pulsesRef.current.push({
+                  from: targetNode.id,
+                  to: connectionId,
+                  progress: 0,
+                  id: Date.now() + Math.random()
+                })
+              }
+            })
+          }
+        }
+
+        return true
+      })
+
       // Create new pulses randomly
       if (Math.random() < (isHovered ? 0.08 : 0.03)) {
         const randomNode = nodesRef.current[Math.floor(Math.random() * nodesRef.current.length)]
@@ -186,6 +273,7 @@ export function NeuralNetwork({ isHovered = false }: NeuralNetworkProps) {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current)
       }
+      canvas.removeEventListener('mousemove', handleMouseMove)
     }
   }, [dimensions, isHovered])
 
@@ -194,8 +282,11 @@ export function NeuralNetwork({ isHovered = false }: NeuralNetworkProps) {
       ref={canvasRef}
       width={dimensions.width}
       height={dimensions.height}
-      className="absolute inset-0 w-full h-full pointer-events-none"
-      style={{ opacity: 0.6 }}
+      className="absolute inset-0 w-full h-full"
+      style={{ 
+        pointerEvents: isHovered ? 'auto' : 'none',
+        opacity: 0.6 
+      }}
     />
   )
 }
