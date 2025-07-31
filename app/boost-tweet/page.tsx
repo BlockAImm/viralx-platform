@@ -12,6 +12,34 @@ export default function BoostTweetPage() {
   const [likes, setLikes] = useState(0);
   const [retweets, setRetweets] = useState(0);
   const [views, setViews] = useState(0);
+  const [viewsInput, setViewsInput] = useState('');
+
+  // Helper function to validate and set numeric input values
+  const setValidatedValue = (value: string, setter: (value: number) => void, min: number, max: number) => {
+    // Remove leading zeros and convert to number
+    const cleanValue = value.replace(/^0+/, '') || '0';
+    const numValue = Number(cleanValue);
+    
+    if (isNaN(numValue)) {
+      setter(0);
+    } else if (numValue === 0) {
+      // Allow 0 regardless of minimum
+      setter(0);
+    } else if (numValue < min && numValue !== 0) {
+      setter(min);
+    } else if (numValue > max) {
+      setter(max);
+    } else {
+      setter(numValue);
+    }
+  };
+
+  // Helper function to clean input value for display
+  const cleanInputValue = (value: string) => {
+    if (value === '') return '';
+    const cleanValue = value.replace(/^0+/, '') || '0';
+    return cleanValue;
+  };
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'USDC' | 'SOL' | 'VIX'>('USDC');
 
@@ -122,8 +150,27 @@ export default function BoostTweetPage() {
                     min="0"
                     max={SERVICE_LIMITS.likes.max}
                     step="10"
-                    value={likes}
-                    onChange={(e) => setLikes(Number(e.target.value))}
+                    value={likes === 0 ? '' : likes.toString()}
+                    onChange={(e) => {
+                      const inputValue = e.target.value.replace(/[^0-9]/g, '');
+                      if (inputValue === '') {
+                        setLikes(0);
+                        return;
+                      }
+                      const numValue = Number(inputValue);
+                      if (numValue < SERVICE_LIMITS.likes.min) {
+                        setLikes(0);
+                      } else if (numValue > SERVICE_LIMITS.likes.max) {
+                        setLikes(SERVICE_LIMITS.likes.max);
+                      } else {
+                        setLikes(numValue);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === '-' || e.key === 'e') {
+                        e.preventDefault();
+                      }
+                    }}
                     className="input w-full text-center"
                     placeholder="0"
                   />
@@ -151,8 +198,27 @@ export default function BoostTweetPage() {
                     min="0"
                     max={SERVICE_LIMITS.retweets.max}
                     step="5"
-                    value={retweets}
-                    onChange={(e) => setRetweets(Number(e.target.value))}
+                    value={retweets === 0 ? '' : retweets.toString()}
+                    onChange={(e) => {
+                      const inputValue = e.target.value.replace(/[^0-9]/g, '');
+                      if (inputValue === '') {
+                        setRetweets(0);
+                        return;
+                      }
+                      const numValue = Number(inputValue);
+                      if (numValue < SERVICE_LIMITS.retweets.min) {
+                        setRetweets(0);
+                      } else if (numValue > SERVICE_LIMITS.retweets.max) {
+                        setRetweets(SERVICE_LIMITS.retweets.max);
+                      } else {
+                        setRetweets(numValue);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === '-' || e.key === 'e') {
+                        e.preventDefault();
+                      }
+                    }}
                     className="input w-full text-center"
                     placeholder="0"
                   />
@@ -179,13 +245,45 @@ export default function BoostTweetPage() {
                     type="number"
                     min="0"
                     max={SERVICE_LIMITS.views.max}
-                    step="1000"
-                    value={views}
-                    onChange={(e) => setViews(Number(e.target.value))}
+                    step="100"
+                    value={viewsInput === '0' ? '' : viewsInput}
+                    onChange={(e) => {
+                      const inputValue = e.target.value.replace(/[^0-9]/g, '');
+                      setViewsInput(inputValue);
+                      if (inputValue === '' || inputValue === '0') {
+                        setViews(0);
+                      } else {
+                        setViews(Number(inputValue));
+                      }
+                    }}
+                    onBlur={() => {
+                      if (viewsInput === '' || viewsInput === '0') {
+                        setViewsInput('0');
+                        setViews(0);
+                      } else {
+                        const numValue = Number(viewsInput);
+                        if (numValue < SERVICE_LIMITS.views.min) {
+                          setViewsInput(SERVICE_LIMITS.views.min.toString());
+                          setViews(SERVICE_LIMITS.views.min);
+                        } else if (numValue > SERVICE_LIMITS.views.max) {
+                          setViewsInput(SERVICE_LIMITS.views.max.toString());
+                          setViews(SERVICE_LIMITS.views.max);
+                        } else {
+                          setViewsInput(numValue.toString());
+                          setViews(numValue);
+                        }
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === '-' || e.key === 'e') {
+                        e.preventDefault();
+                      }
+                    }}
                     className="input w-full text-center"
                     placeholder="0"
                   />
                   <p className="text-steel-blue text-xs mt-2 text-center">
+                    Min: {SERVICE_LIMITS.views.min.toLocaleString()}<br />
                     Max: {SERVICE_LIMITS.views.max.toLocaleString()}
                   </p>
                   {views > 0 && (
